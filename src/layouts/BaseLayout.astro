@@ -35,8 +35,8 @@ interface Props {
 }
 
 const {
-  title = 'oriz / blog',
-  description = "An engineer's working notebook. Long-form writing on engineering, finance, and books — by Chirag Singhal.",
+  title = 'PawPost — pet care for dogs & cats',
+  description = 'PawPost — practical, science-checked pet care for dogs and cats. Puppy training, cat behaviour, nutrition, and health, written plainly.',
   canonical = `https://blog.oriz.in${Astro.url.pathname}`,
   noindex = false,
   jsonLd,
@@ -70,7 +70,7 @@ const visibleBottomBarActions = hideSidebar
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content={type} />
-    <meta property="og:site_name" content="oriz / blog" />
+    <meta property="og:site_name" content="PawPost" />
     {ogImage && <meta property="og:image" content={ogImage} />}
     {type === 'article' && pubDate && (
       <meta property="article:published_time" content={pubDate.toISOString()} />

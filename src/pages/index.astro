@@ -1,14 +1,21 @@
 ---
 import SeriesSpine from '~/components/SeriesSpine.astro'
 /**
- * /  — PawPost homepage ("Kennel Card" front).
+ * /  — PawPost "kennel board": a PLAYFUL BENTO GRID dashboard.
  *
- * HERO is a thesis, not a big number: an adoption-shelter INTAKE CARD panel
- * (teal border, rounded 14px, brass ring) stating what the blog promises, with
- * an engraved dateline and a paw-print divider (the signature). Below: three
- * strata — In progress (series), Recent (rounded collar-tag cards, desk-tinted),
- * By topic (typographic row). Pet desks: Dogs · Cats · Behaviour · Health ·
- * Nutrition, each with its own marker colour (--v-*).
+ * Not a linear list and not the top-nav card-grid the sibling blogs share.
+ * A mixed-size tile board on a 4-col (desktop) grid:
+ *   ┌────────────┬──────┬──────┐
+ *   │  FEATURED  │ desk │ desk │   featured = 2×2 intake card (thesis)
+ *   │  (2×2)     ├──────┼──────┤   desk tiles = pet-desk category chips
+ *   │            │ desk │ desk │
+ *   ├──────┬─────┴──────┴──────┤
+ *   │ NOW  │  latest  latest   │   now-running series tile + latest guide tiles
+ *   │ RUN  ├──────┬──────┬─────┤
+ *   │(1×2) │ late │ late │ ALL │   ALL = archive CTA tile
+ *   └──────┴──────┴──────┴─────┘
+ * Rounded 14–20px, bouncy hover (lift + tiny rotate), paw signature retained.
+ * Mobile: single column, tiles stack in reading order; featured first.
  */
 import BaseLayout from '~/layouts/BaseLayout.astro'
 import {
@@ -26,7 +33,7 @@ import { SITE_CONFIG } from '~/lib/config'
 
 const allPosts = await getPublishedPosts()
 const lead = allPosts[0]
-const recentPosts = allPosts.slice(1, 8)
+const recentPosts = allPosts.slice(1, 7)
 
 const seriesAll = await getSeriesWithCounts()
 type InProgress = {
@@ -36,7 +43,6 @@ type InProgress = {
   published: number
   current: number
   latest: Date
-  parts: Awaited<ReturnType<typeof getPostsInSeries>>
 }
 const inProgress: InProgress[] = []
 for (const { series, count } of seriesAll.slice(0, 4)) {
@@ -50,19 +56,12 @@ for (const { series, count } of seriesAll.slice(0, 4)) {
     return Number.isFinite(v) ? Math.max(mx, v) : mx
   }, 0)
   const total = Math.max(count, explicitMax, count + 1)
-  inProgress.push({
-    name: series,
-    slug: slugifyTag(series),
-    total,
-    published: count,
-    current: count,
-    latest,
-    parts,
-  })
+  inProgress.push({ name: series, slug: slugifyTag(series), total, published: count, current: count, latest })
 }
 inProgress.sort((a, b) => b.latest.valueOf() - a.latest.valueOf())
+const nowRunning = inProgress[0]
 
-const cats = await getCategoriesWithCounts()
+const cats = (await getCategoriesWithCounts()).slice(0, 4)
 
 const now = new Date()
 const dateline = now.toLocaleDateString('en-GB', {
@@ -97,164 +96,102 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title="PawPost — pet care for dogs & cats"
+  title="PawPost — the pet-care board for dogs & cats"
   description={SITE_CONFIG.description}
   jsonLd={jsonLd}
   hideSidebar
 >
-  <div class="container-page">
-    {/* Intake-card hero — thesis, not a big number. */}
-    <section class="intake" aria-label="What PawPost is">
-      <p class="intake-dateline mono">
-        <span class="intake-stamp">Admitted</span>
-        <span aria-hidden="true">·</span>
-        <span>{dateline}</span>
-        <span aria-hidden="true">·</span>
-        <span><span class="count">{allPosts.length}</span> field notes on file</span>
-      </p>
-      <h1 class="intake-thesis">
-        Good pet care is boring, repeatable, and checkable. We write down the boring part so your dog or cat gets the good years.
-      </h1>
-      <p class="intake-sub">
-        Plain-language guides on puppies, cats, nutrition, behaviour, and health — each one is what we actually do, and why, with the vet reasoning left in.
-      </p>
-      <div class="paw-divider" aria-hidden="true">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <svg class={`pd-paw pd-paw-${i}`} viewBox="0 0 24 24" focusable="false">
-            <circle cx="12" cy="15" r="4.4" />
-            <circle cx="6" cy="9" r="2.1" />
-            <circle cx="18" cy="9" r="2.1" />
-            <circle cx="9" cy="5.5" r="1.8" />
-            <circle cx="15" cy="5.5" r="1.8" />
-          </svg>
-        ))}
-      </div>
-      {inProgress[0] && (
-        <p class="intake-spine">
-          <span class="intake-spine-label mono">Now running</span>
-          <SeriesSpine
-            total={inProgress[0].total}
-            published={inProgress[0].published}
-            current={inProgress[0].current}
-            size="md"
-          />
-          <a class="intake-spine-name" href={`/series/${inProgress[0].slug}/`}>{inProgress[0].name}</a>
-        </p>
-      )}
-    </section>
+  <div class="board">
+    <p class="board-line mono">
+      <span class="board-stamp">On the board</span>
+      <span aria-hidden="true">·</span>
+      <span>{dateline}</span>
+      <span aria-hidden="true">·</span>
+      <span><span class="count">{allPosts.length}</span> field notes on file</span>
+    </p>
 
-    {lead && (
-      <section class="lead" data-vertical={leadVertical} aria-labelledby="lead-title">
-        <a class="lead-link" href={`/blog/${lead.id}`}>
-          <span class="lead-kicker mono">
-            <span class="lead-notch" aria-hidden="true"></span>
-            <span class="lead-desk">{verticalLabel(leadVertical)}</span>
-            <span class="lead-flag">Start here</span>
+    <div class="bento">
+      {/* FEATURED tile (2×2) — the thesis. */}
+      <section class="tile tile-hero" data-vertical={leadVertical} aria-labelledby="hero-title">
+        <span class="hero-eyebrow mono">
+          <span class="hero-notch" aria-hidden="true"></span>{lead ? verticalLabel(leadVertical) : 'PawPost'} · start here
+        </span>
+        <h1 id="hero-title" class="hero-thesis">
+          Good pet care is boring, repeatable, checkable. We write down the boring part so your dog or cat gets the good years.
+        </h1>
+        {lead ? (
+          <a class="hero-lead" href={`/blog/${lead.id}`}>
+            <span class="hero-lead-title">{lead.data.title}</span>
+            <span class="hero-lead-dek">{lead.data.description}</span>
+            <span class="hero-lead-foot mono">
+              <time datetime={lead.data.pubDate.toISOString()}>{lead.data.pubDate.toISOString().slice(0, 10)}</time>
+              <span aria-hidden="true">·</span><span>{leadRt}</span>
+            </span>
+          </a>
+        ) : (
+          <p class="hero-lead-dek">Plain-language guides on puppies, cats, nutrition, behaviour, and health.</p>
+        )}
+        <span class="paw-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <circle cx="12" cy="15" r="4.4" /><circle cx="6" cy="9" r="2.1" />
+            <circle cx="18" cy="9" r="2.1" /><circle cx="9" cy="5.5" r="1.8" /><circle cx="15" cy="5.5" r="1.8" />
+          </svg>
+        </span>
+      </section>
+
+      {/* Pet-desk chips (mini tiles). */}
+      {cats.map((c) => (
+        <a class="tile tile-desk" href={`/categories/${slugifyTag(c.category)}/`} data-vertical={verticalFor(c.category)}>
+          <span class="desk-dot" aria-hidden="true"></span>
+          <span class="desk-name">{c.category}</span>
+          <span class="desk-count mono">{c.count} {c.count === 1 ? 'guide' : 'guides'}</span>
+        </a>
+      ))}
+
+      {/* NOW RUNNING series tile (tall). */}
+      {nowRunning && (
+        <a class="tile tile-now" href={`/series/${nowRunning.slug}/`}>
+          <span class="now-label mono">Now running</span>
+          <span class="now-name">{nowRunning.name}</span>
+          <span class="now-spine">
+            <SeriesSpine total={nowRunning.total} published={nowRunning.published} current={nowRunning.current} size="md" />
           </span>
-          <h2 id="lead-title" class="lead-title">{lead.data.title}</h2>
-          <p class="lead-dek">{lead.data.description}</p>
-          <span class="lead-meta mono">
-            <time datetime={lead.data.pubDate.toISOString()}>{lead.data.pubDate.toISOString().slice(0, 10)}</time>
-            <span aria-hidden="true">·</span>
-            <span>{leadRt}</span>
+          <span class="now-meta mono">part {nowRunning.published} of {nowRunning.total} · {ago(nowRunning.latest)}</span>
+        </a>
+      )}
+
+      {/* Latest guide tiles. */}
+      {recentPosts.map((p) => (
+        <a class="tile tile-post" href={`/blog/${p.id}`} data-vertical={postVertical(p)}>
+          <span class="post-kicker mono">
+            <span class="post-notch" aria-hidden="true"></span>{verticalLabel(postVertical(p))}
+          </span>
+          <span class="post-title">{p.data.title}</span>
+          <span class="post-foot mono">
+            <time datetime={p.data.pubDate.toISOString()}>{p.data.pubDate.toISOString().slice(0, 10)}</time>
+            <span aria-hidden="true">·</span><span>{p.data.readingTime ?? readingTimeFor(p)}</span>
           </span>
         </a>
-      </section>
-    )}
+      ))}
 
-    {/* Stratum 1 — IN PROGRESS. */}
-    {inProgress.length > 0 && (
-      <section class="stratum stratum-progress" aria-labelledby="s-progress">
-        <h2 id="s-progress" class="stratum-h mono">In progress</h2>
-        <ul class="progress-list">
-          {inProgress.map((s) => (
-            <li class="progress-row">
-              <a class="progress-link" href={`/series/${s.slug}/`}>
-                <span class="progress-name">{s.name}</span>
-                <span class="progress-meta mono">part {s.published} of {s.total}</span>
-                <span class="progress-spine-mount">
-                  <SeriesSpine
-                    total={s.total}
-                    published={s.published}
-                    current={s.current}
-                    size="md"
-                  />
-                </span>
-                <span class="progress-ago mono">{ago(s.latest)}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
-    {/* Stratum 2 — RECENT (rounded collar-tag cards). */}
-    <section class="stratum stratum-recent" aria-labelledby="s-recent">
-      <h2 id="s-recent" class="stratum-h mono">Latest guides</h2>
-      <ul class="recent-list">
-        {recentPosts.map((p) => (
-          <li class="recent-row" data-vertical={postVertical(p)}>
-            <a class="recent-link" href={`/blog/${p.id}`}>
-              <span class="recent-kicker mono">
-                <span class="recent-notch" aria-hidden="true"></span>{verticalLabel(postVertical(p))}
-              </span>
-              <span class="recent-title">{p.data.title}</span>
-              <span class="recent-dek">{p.data.description}</span>
-              <span class="recent-foot mono">
-                <time datetime={p.data.pubDate.toISOString()}>{p.data.pubDate.toISOString().slice(0, 10)}</time>
-                <span aria-hidden="true">·</span>
-                <span>{p.data.readingTime ?? readingTimeFor(p)}</span>
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
-      <p class="all-link">
-        <a href="/archive/">Read all {allPosts.length} guides in the archive →</a>
-      </p>
-    </section>
-
-    {/* Stratum 3 — BY TOPIC. */}
-    {cats.length > 0 && (
-      <section class="stratum stratum-cats" aria-labelledby="s-cats">
-        <h2 id="s-cats" class="stratum-h mono">By topic</h2>
-        <p class="cats-row">
-          {cats.map((c, i) => (
-            <>
-              {i > 0 && <span class="cats-dot" aria-hidden="true">·</span>}
-              <a href={`/categories/${slugifyTag(c.category)}/`} class="cats-link" data-vertical={verticalFor(c.category)}>
-                <span class="cats-name">{c.category}</span>
-                <span class="cats-count mono">({c.count})</span>
-              </a>
-            </>
-          ))}
-        </p>
-      </section>
-    )}
+      {/* ALL guides CTA tile. */}
+      <a class="tile tile-all" href="/archive/">
+        <span class="all-num">{allPosts.length}</span>
+        <span class="all-label">guides in the archive</span>
+        <span class="all-go mono">Open the shelf →</span>
+      </a>
+    </div>
   </div>
 </BaseLayout>
 
 <style>
-  .container-page {
-    max-width: 940px;
+  .board {
+    max-width: 1200px;
     margin-inline: auto;
-    padding-inline: clamp(1.25rem, 4vw, 2rem);
+    padding-inline: clamp(0.9rem, 3vw, 1.5rem);
+    padding-block: clamp(1.25rem, 4vw, 2rem) 0;
   }
-
-  /* ── Intake card (hero) ────────────────────────────────────────────── */
-
-  .intake {
-    margin-top: clamp(1.5rem, 5vw, 2.75rem);
-    padding: clamp(1.5rem, 4vw, 2.5rem);
-    background: var(--paper-2);
-    border: 1.5px solid var(--brand);
-    border-radius: var(--radius-card);
-    box-shadow:
-      inset 0 0 0 4px var(--paper-2),
-      inset 0 0 0 5px color-mix(in oklab, var(--tag) 55%, transparent);
-    position: relative;
-  }
-  .intake-dateline {
+  .board-line {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -265,7 +202,7 @@ const jsonLd = {
     color: var(--ink-mute);
     margin: 0 0 1.25rem;
   }
-  .intake-stamp {
+  .board-stamp {
     color: var(--color-accent-fg, #fff);
     background: var(--brand);
     padding: 0.15em 0.6em;
@@ -273,315 +210,139 @@ const jsonLd = {
     font-weight: 700;
     letter-spacing: 0.14em;
   }
-  .intake-dateline .count { color: var(--ink); font-weight: 700; }
-  .intake-thesis {
-    font-family: var(--font-display);
-    font-size: clamp(1.75rem, 4.6vw, 2.9rem);
-    font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin: 0;
-    max-width: 22ch;
-    font-variation-settings: 'SOFT' 40, 'opsz' 60;
-  }
-  .intake-sub {
-    font-family: var(--font-body);
-    font-size: clamp(1.0625rem, 2vw, 1.1875rem);
-    line-height: 1.55;
-    color: var(--ink-mute);
-    margin: 1.125rem 0 0;
-    max-width: 56ch;
-  }
+  .board-line .count { color: var(--ink); font-weight: 700; }
 
-  /* signature paw-print divider */
-  .paw-divider {
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
-    margin: 1.5rem 0 0.25rem;
-  }
-  .pd-paw {
-    width: 18px;
-    height: 18px;
-    fill: color-mix(in oklab, var(--brand) 60%, transparent);
-    transform: rotate(-12deg);
-  }
-  .pd-paw-1 { fill: color-mix(in oklab, var(--paw) 60%, transparent); transform: rotate(8deg) translateY(4px); }
-  .pd-paw-2 { fill: color-mix(in oklab, var(--brand) 75%, transparent); transform: rotate(-6deg); }
-  .pd-paw-3 { fill: color-mix(in oklab, var(--paw) 60%, transparent); transform: rotate(10deg) translateY(4px); }
-  .pd-paw-4 { fill: color-mix(in oklab, var(--tag) 70%, transparent); transform: rotate(-14deg); }
-
-  .intake-spine {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.625rem;
-    margin: 1.375rem 0 0;
-  }
-  .intake-spine-label {
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-  }
-  .intake-spine-name {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1.5px solid var(--rule);
-  }
-  .intake-spine-name:hover { color: var(--brand); border-bottom-color: var(--brand); }
-
-  /* ── Lead story (Start here) ───────────────────────────────────────── */
-
-  .lead {
-    --v: var(--v-personal);
-    margin-top: clamp(1.75rem, 4vw, 2.5rem);
-    padding: clamp(1.25rem, 3vw, 1.75rem);
-    background: var(--paper-2);
-    border: 1px solid var(--rule);
-    border-left: 5px solid var(--v);
-    border-radius: var(--radius-card);
-    transition:
-      transform var(--dur-base, 200ms) var(--ease-out, ease),
-      border-color var(--dur-base, 200ms) ease;
-  }
-  .lead[data-vertical='dev'] { --v: var(--v-dev); }
-  .lead[data-vertical='finance'] { --v: var(--v-finance); }
-  .lead[data-vertical='culture'] { --v: var(--v-culture); }
-  .lead[data-vertical='health'] { --v: var(--v-health); }
-  .lead:hover { transform: translateY(-2px); border-color: var(--v); }
-  .lead-link { display: grid; gap: 0.625rem; color: var(--ink); text-decoration: none; }
-  .lead-kicker {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute);
-  }
-  .lead-notch { width: 9px; height: 9px; background: var(--v); border-radius: 999px; flex: 0 0 auto; }
-  .lead-desk { color: var(--v); font-weight: 700; }
-  .lead-flag { border-left: 1px solid var(--rule); padding-left: 0.5rem; color: var(--brand); font-weight: 700; }
-  .lead-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.625rem, 4vw, 2.35rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.12;
-    margin: 0;
-    max-width: 22ch;
-    font-variation-settings: 'SOFT' 40, 'opsz' 40;
-  }
-  .lead-link:hover .lead-title { color: var(--brand); }
-  .lead-dek {
-    font-family: var(--font-body);
-    font-size: 1.0625rem;
-    line-height: 1.55;
-    color: var(--ink-mute);
-    margin: 0;
-    max-width: 60ch;
-  }
-  .lead-meta { display: inline-flex; gap: 0.5rem; font-size: 11px; letter-spacing: 0.06em; color: var(--ink-mute); }
-
-  /* ── Strata ────────────────────────────────────────────────────────── */
-
-  .stratum { padding-block: clamp(1.75rem, 4vw, 2.5rem) 0; }
-  .stratum-h {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--ink-mute);
-    font-weight: 700;
-    margin: 0 0 1.25rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .stratum-h::before {
-    content: '';
-    width: 22px;
-    height: 2px;
-    background: var(--tag);
-    border-radius: 999px;
-  }
-
-  /* ── In progress ──────────────────────────────────────────────────── */
-
-  .progress-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-  .progress-link {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
-    gap: 1rem;
-    align-items: baseline;
-    color: var(--ink);
-    text-decoration: none;
-    padding: 0.75rem 1rem;
-    background: var(--paper-2);
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease;
-  }
-  .progress-link:hover { border-color: var(--brand); background: var(--brand-soft); }
-  .progress-link:hover .progress-name { color: var(--brand); }
-  .progress-name {
-    font-family: var(--font-display);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .progress-meta, .progress-ago {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    color: var(--ink-mute);
-  }
-  .progress-spine-mount { display: inline-flex; }
-
-  @media (max-width: 640px) {
-    .progress-link {
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas: 'name ago' 'meta meta' 'spine spine';
-      row-gap: 0.25rem;
-      border-radius: var(--radius-card);
-    }
-    .progress-name { grid-area: name; }
-    .progress-meta { grid-area: meta; }
-    .progress-spine-mount { grid-area: spine; }
-    .progress-ago { grid-area: ago; text-align: right; }
-  }
-
-  /* ── Recent (rounded collar-tag cards) ────────────────────────────── */
-
-  .recent-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  /* ── Bento grid ─────────────────────────────────────────────────────── */
+  .bento {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.875rem;
+    grid-auto-flow: dense;
   }
-  @media (min-width: 720px) {
-    .recent-list { grid-template-columns: 1fr 1fr; }
+  @media (min-width: 620px) {
+    .bento { grid-template-columns: repeat(2, 1fr); }
   }
-  .recent-row { --v: var(--v-personal); }
-  .recent-row[data-vertical='dev'] { --v: var(--v-dev); }
-  .recent-row[data-vertical='finance'] { --v: var(--v-finance); }
-  .recent-row[data-vertical='culture'] { --v: var(--v-culture); }
-  .recent-row[data-vertical='health'] { --v: var(--v-health); }
-  .recent-link {
+  @media (min-width: 960px) {
+    .bento { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  }
+
+  .tile {
+    --v: var(--v-personal);
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    height: 100%;
-    color: var(--ink);
-    text-decoration: none;
-    padding: 1.125rem 1.25rem;
     background: var(--paper-2);
     border: 1px solid var(--rule);
-    border-top: 4px solid var(--v);
     border-radius: var(--radius-card);
+    padding: 1.125rem 1.25rem;
+    color: var(--ink);
+    text-decoration: none;
+    overflow: hidden;
     transition:
-      transform var(--dur-base, 200ms) var(--ease-out, ease),
+      transform var(--dur-base, 200ms) cubic-bezier(0.34, 1.56, 0.64, 1),
       border-color var(--dur-base, 200ms) ease,
       box-shadow var(--dur-base, 200ms) ease;
   }
-  .recent-link:hover {
-    transform: translateY(-2px);
+  .tile[data-vertical='dev'] { --v: var(--v-dev); }
+  .tile[data-vertical='finance'] { --v: var(--v-finance); }
+  .tile[data-vertical='culture'] { --v: var(--v-culture); }
+  .tile[data-vertical='health'] { --v: var(--v-health); }
+  a.tile:hover {
+    transform: translateY(-4px) rotate(-0.5deg);
     border-color: var(--v);
-    box-shadow: 0 6px 20px color-mix(in oklab, var(--ink) 10%, transparent);
+    box-shadow: 0 10px 26px color-mix(in oklab, var(--ink) 12%, transparent);
   }
-  .recent-link:hover .recent-title { color: var(--brand); }
-  .recent-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--v);
-    font-weight: 700;
+
+  /* FEATURED (2×2) */
+  .tile-hero {
+    border-radius: 20px;
+    border-top: 5px solid var(--v);
+    background: var(--paper-2);
+    box-shadow: inset 0 0 0 4px var(--paper-2), inset 0 0 0 5px color-mix(in oklab, var(--tag) 45%, transparent);
+    gap: 0.75rem;
+    padding: clamp(1.25rem, 3vw, 1.9rem);
   }
-  .recent-notch { width: 7px; height: 7px; background: var(--v); border-radius: 999px; flex: 0 0 auto; }
-  .recent-title {
+  @media (min-width: 620px) { .tile-hero { grid-column: span 2; } }
+  @media (min-width: 960px) { .tile-hero { grid-column: span 2; grid-row: span 2; } }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--v); font-weight: 700;
+  }
+  .hero-notch { width: 9px; height: 9px; border-radius: 999px; background: var(--v); }
+  .hero-thesis {
     font-family: var(--font-display);
-    font-size: 1.2rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-    line-height: 1.22;
-    font-variation-settings: 'SOFT' 40, 'opsz' 30;
+    font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+    font-weight: 600; line-height: 1.12; letter-spacing: -0.02em;
+    margin: 0; max-width: 20ch;
+    font-variation-settings: 'SOFT' 40, 'opsz' 60;
   }
-  .recent-dek {
-    font-family: var(--font-body);
-    font-size: 0.9375rem;
-    color: var(--ink-mute);
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    overflow: hidden;
-    margin-bottom: 0.25rem;
-  }
-  .recent-foot {
+  .hero-lead {
     margin-top: auto;
-    display: inline-flex;
-    gap: 0.5rem;
-    color: var(--ink-mute);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
+    display: grid; gap: 0.3rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--rule);
+    color: var(--ink); text-decoration: none;
   }
+  .hero-lead-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+  .tile-hero:hover .hero-lead-title { color: var(--brand); }
+  .hero-lead-dek {
+    font-family: var(--font-body); font-size: 0.95rem; line-height: 1.5; color: var(--ink-mute);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+  }
+  .hero-lead-foot { display: inline-flex; gap: 0.4rem; font-size: 11px; letter-spacing: 0.04em; color: var(--ink-mute); }
+  .paw-mark {
+    position: absolute; right: -14px; bottom: -14px; width: 96px; height: 96px;
+    opacity: 0.08; pointer-events: none;
+  }
+  .paw-mark svg { width: 100%; height: 100%; fill: var(--v); transform: rotate(-12deg); }
 
-  .all-link {
-    margin: 1.5rem 0 0;
-    font-family: var(--font-sans);
-    font-size: 0.9375rem;
-    font-weight: 600;
-  }
-  .all-link a {
-    color: var(--brand);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: color-mix(in oklab, var(--brand) 40%, transparent);
-  }
-  .all-link a:hover { text-decoration-color: var(--brand); }
+  /* DESK chips */
+  .tile-desk { gap: 0.5rem; justify-content: center; min-height: 92px; }
+  .desk-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--v); box-shadow: 0 0 0 4px color-mix(in oklab, var(--v) 18%, transparent); }
+  .desk-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+  .tile-desk:hover .desk-name { color: var(--v); }
+  .desk-count { font-size: 11px; letter-spacing: 0.06em; color: var(--ink-mute); }
 
-  /* ── By topic (one row) ───────────────────────────────────────────── */
+  /* NOW RUNNING (tall) */
+  .tile-now {
+    gap: 0.55rem;
+    background: linear-gradient(160deg, var(--brand-soft), var(--paper-2) 70%);
+    border-color: color-mix(in oklab, var(--brand) 30%, var(--rule));
+  }
+  @media (min-width: 960px) { .tile-now { grid-row: span 2; justify-content: center; } }
+  .now-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand); font-weight: 700; }
+  .now-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; line-height: 1.18; letter-spacing: -0.01em; }
+  .tile-now:hover .now-name { color: var(--brand); }
+  .now-spine { display: inline-flex; margin-block: 0.15rem; }
+  .now-meta { font-size: 11px; letter-spacing: 0.04em; color: var(--ink-mute); }
 
-  .cats-row { margin: 0; line-height: 2.1; color: var(--ink); }
-  .cats-link {
-    --v: var(--v-personal);
-    color: var(--ink);
-    text-decoration: none;
-    margin-inline: 0.125rem;
+  /* POST tiles */
+  .tile-post { border-top: 4px solid var(--v); gap: 0.5rem; min-height: 128px; }
+  .post-kicker { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--v); font-weight: 700; }
+  .post-notch { width: 7px; height: 7px; border-radius: 999px; background: var(--v); }
+  .post-title {
+    font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; line-height: 1.22; letter-spacing: -0.01em;
+    font-variation-settings: 'SOFT' 40, 'opsz' 30;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
   }
-  .cats-link[data-vertical='dev'] { --v: var(--v-dev); }
-  .cats-link[data-vertical='finance'] { --v: var(--v-finance); }
-  .cats-link[data-vertical='culture'] { --v: var(--v-culture); }
-  .cats-link[data-vertical='health'] { --v: var(--v-health); }
-  .cats-link:hover .cats-name { color: var(--v); }
-  .cats-name {
-    font-family: var(--font-display);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+  .tile-post:hover .post-title { color: var(--brand); }
+  .post-foot { margin-top: auto; display: inline-flex; gap: 0.4rem; font-size: 11px; letter-spacing: 0.04em; color: var(--ink-mute); }
+
+  /* ALL CTA */
+  .tile-all {
+    background: var(--brand); color: var(--color-accent-fg, #fff);
+    border-color: var(--brand);
+    gap: 0.15rem; justify-content: center; min-height: 128px;
+    box-shadow: inset 0 0 0 4px var(--brand), inset 0 0 0 5px color-mix(in oklab, var(--tag) 55%, transparent);
   }
-  .cats-count {
-    color: var(--ink-mute);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    margin-left: 0.25rem;
-  }
-  .cats-dot { color: var(--rule-strong, var(--rule)); margin-inline: 0.5rem; }
+  .tile-all:hover { border-color: var(--tag); }
+  .all-num { font-family: var(--font-display); font-size: clamp(2.4rem, 6vw, 3.2rem); font-weight: 600; line-height: 1; }
+  .all-label { font-family: var(--font-body); font-size: 0.95rem; opacity: 0.92; }
+  .all-go { margin-top: 0.5rem; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; opacity: 0.95; }
 
   @media (prefers-reduced-motion: reduce) {
-    .lead, .recent-link { transition: none; }
-    .lead:hover, .recent-link:hover { transform: none; }
+    .tile { transition: border-color var(--dur-base, 200ms) ease; }
+    a.tile:hover { transform: none; }
   }
 </style>
