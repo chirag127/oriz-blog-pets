@@ -1,0 +1,132 @@
+---
+/*
+ * Wordmark — "PawPost" set on an enamel pet-ID tag pill (the collar tag).
+ *
+ * Signature element: the brand rides a rounded, brass-ringed enamel tag — the
+ * engraved pet ID tag you clip to a collar — with a small paw-print punch where
+ * the split-ring hole would be. Fraunces display serif for the name, teal
+ * enamel fill, brass hairline ring. Each oriz site owns its own mark; this one
+ * is unmistakably the pets desk.
+ */
+
+interface Props {
+  /** Sub-section name — rendered after the tag, in engraved mono. */
+  subtitle?: string
+  /** Display size in CSS pixels (name cap-height). */
+  size?: number
+  /** Wrap the mark in an <a href>. */
+  href?: string | null
+  /** Render as <h1> (the masthead) rather than <div>. */
+  asHeading?: boolean
+}
+
+const { subtitle, size = 96, href = null, asHeading = false } = Astro.props
+const Tag = asHeading ? 'h1' : ('div' as const)
+---
+
+{
+  href ? (
+    <a class="wordmark-link" href={href} aria-label={subtitle ? `PawPost / ${subtitle}` : 'PawPost'}>
+      <Tag class="wordmark" style={`--wm-size: ${size}px;`}>
+        <span class="wm-tag" aria-hidden="true">
+          <svg class="wm-paw" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <circle cx="12" cy="15" r="4.4" />
+            <circle cx="6" cy="9" r="2.1" />
+            <circle cx="18" cy="9" r="2.1" />
+            <circle cx="9" cy="5.5" r="1.8" />
+            <circle cx="15" cy="5.5" r="1.8" />
+          </svg>
+          <span class="wm-name">PawPost</span>
+        </span>
+        {subtitle && (
+          <>
+            <span class="wordmark-sep" aria-hidden="true">/</span>
+            <span class="wordmark-sub">{subtitle}</span>
+          </>
+        )}
+      </Tag>
+    </a>
+  ) : (
+    <Tag class="wordmark" style={`--wm-size: ${size}px;`}>
+      <span class="wm-tag" aria-hidden="true">
+        <svg class="wm-paw" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <circle cx="12" cy="15" r="4.4" />
+          <circle cx="6" cy="9" r="2.1" />
+          <circle cx="18" cy="9" r="2.1" />
+          <circle cx="9" cy="5.5" r="1.8" />
+          <circle cx="15" cy="5.5" r="1.8" />
+        </svg>
+        <span class="wm-name">PawPost</span>
+      </span>
+      {subtitle && (
+        <>
+          <span class="wordmark-sep" aria-hidden="true">/</span>
+          <span class="wordmark-sub">{subtitle}</span>
+        </>
+      )}
+    </Tag>
+  )
+}
+
+<style>
+  .wordmark-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    margin: 0;
+    font-size: var(--wm-size, 96px);
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  /* enamel pet-ID tag pill — the signature mark */
+  .wm-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.34em;
+    padding: 0.28em 0.62em 0.28em 0.42em;
+    background: var(--brand);
+    color: var(--color-accent-fg, #fff);
+    border-radius: 999px;
+    box-shadow:
+      inset 0 0 0 0.09em color-mix(in oklab, var(--tag) 85%, transparent),
+      0 1px 0 color-mix(in oklab, var(--ink) 12%, transparent);
+  }
+  .wm-paw {
+    width: 0.82em;
+    height: 0.82em;
+    flex: 0 0 auto;
+    fill: var(--color-accent-fg, #fff);
+  }
+  .wm-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.86em;
+    letter-spacing: -0.02em;
+    font-variation-settings: 'SOFT' 60, 'opsz' 40;
+  }
+
+  .wordmark-sep {
+    margin-inline: 0.1em;
+    color: var(--ink-mute);
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 0.8em;
+  }
+  .wordmark-sub {
+    color: var(--brand);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.5em;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+  }
+  .wordmark-link:hover .wm-tag {
+    background: color-mix(in oklab, var(--brand) 88%, var(--ink));
+  }
+</style>

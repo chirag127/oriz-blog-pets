@@ -1,0 +1,17 @@
+{
+  "name": "PawPost",
+  "short_name": "PawPost",
+  "description": "PawPost — practical, science-checked pet care for dogs and cats.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf7ef",
+  "theme_color": "#2f8f7e",
+  "orientation": "any",
+  "icons": [
+    { "src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["pets", "education", "lifestyle"],
+  "lang": "en"
+}

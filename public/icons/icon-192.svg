@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <title>PawPost</title>
+  <rect width="192" height="192" rx="42" fill="#2f8f7e"/>
+  <rect x="9" y="9" width="174" height="174" rx="34" fill="none" stroke="#c9a24b" stroke-width="8"/>
+  <g fill="#fbf7ef">
+    <circle cx="96" cy="120" r="32"/>
+    <circle cx="51" cy="75" r="15.5"/>
+    <circle cx="141" cy="75" r="15.5"/>
+    <circle cx="72" cy="48" r="13"/>
+    <circle cx="120" cy="48" r="13"/>
+  </g>
+</svg>

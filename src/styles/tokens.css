@@ -1,0 +1,236 @@
+/*
+ * tokens.css — pets-blog identity ("Kennel Card", 2026-08-12).
+ *
+ * Grounded in the physical world of vet clinics, adoption-shelter intake cards,
+ * and engraved pet ID tags. DELIBERATELY NOT the oriz-blog "Signal Press"
+ * amber/serif look, and NOT any of the 3 AI-default looks.
+ *
+ *   Clean kraft-cream paper · vet-clinic TEAL-GREEN primary · warm marmalade
+ *   secondary tick · brass tag-engraving hairlines · Fraunces display serif ·
+ *   Nunito Sans rounded body · Space Mono engraved metadata · rounded 14px
+ *   collar-tag cards (against the base's zero-radius newspaper).
+ *
+ * Every --color-* / legacy name kept as an alias so chrome/legal/Footer
+ * components compile unchanged. Theme modes:
+ *   :root                              → light (default — kraft paper)
+ *   @media (prefers-color-scheme:dark) → dark night-clinic, UNLESS [data-theme="light"]
+ *   [data-theme="dark"]                → dark, always
+ *   [data-theme="sepia"]               → warm bedding variant
+ *   [data-theme="hc"]                  → pure black/white high contrast
+ */
+:root {
+  color-scheme: light;
+
+  /* ── Kennel Card palette (light default) ──────────────────────────────
+     Kraft-cream paper, vet-clinic teal primary, warm marmalade cat-orange
+     secondary tick, brass tag engraving. Deep pine ink. */
+  --brand: #2f8f7e; /* vet-clinic teal-green — links, active, primary */
+  --brand-soft: #dfeee9; /* pale teal wash — hover, chips */
+  --paw: #f0873e; /* warm marmalade — cat-orange ticks/kickers (secondary) */
+  --tag: #c9a24b; /* brass tag engraving — accent hairlines */
+  --success: #2f8f7e;
+  --danger-color: #d8613f;
+
+  --paper: #fbf7ef; /* clean kraft-cream page bg */
+  --paper-2: #ffffff; /* elevated collar-tag card surface */
+  --surface: var(--paper-2);
+  --ink: #1f2a28; /* deep pine-charcoal text */
+  --ink-mute: #6e7b77; /* muted sage-grey secondary */
+  --rule: #e6ded0; /* warm kraft hairlines */
+  --rule-strong: #d6cbb6; /* heavier masthead rule */
+
+  --accent: var(--brand);
+  --accent-soft: var(--brand-soft);
+  --cobalt: var(--accent); /* back-compat alias → --accent */
+  --brand-tint: var(--brand-soft);
+  --sage: var(--success);
+  --vermilion: var(--danger-color);
+  --highlighter: var(--paw);
+
+  /* content-vertical (pet-desk) marker colours — thin rules / kicker notches
+     only, never the page accent. Dogs · Cats · Health · Nutrition · Behaviour. */
+  --v-dev: #2f8f7e; /* Dogs → teal */
+  --v-finance: #f0873e; /* Cats → marmalade */
+  --v-culture: #c9a24b; /* Behaviour → brass */
+  --v-health: #d8613f; /* Health → clay-red */
+  --v-personal: #7a8b6f; /* Nutrition → sage-olive */
+
+  /* semantic passthroughs */
+  --color-bg: var(--paper);
+  --color-fg: var(--ink);
+  --color-accent: var(--brand);
+  --color-accent-fg: #ffffff;
+  --color-sage: var(--success);
+  --color-muted: var(--ink-mute);
+  --color-border: var(--rule);
+  --color-bg-soft: var(--paper-2);
+  --color-bg-muted: var(--paper-2);
+  --color-prose: var(--ink);
+  --color-fg-muted: var(--ink-mute);
+  --color-fg-soft: var(--ink-mute);
+
+  /* color alias layer (chrome components read these) */
+  --color-brand-indigo: var(--brand);
+  --color-brand-indigo-soft: var(--brand-soft);
+  --color-brand-success: var(--success);
+  --color-brand-danger: var(--danger-color);
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #fbf7ef;
+  --color-neutral-100: #f3ecdf;
+  --color-neutral-200: #e6ded0;
+  --color-neutral-300: #d6cbb6;
+  --color-neutral-500: #6e7b77;
+  --color-neutral-700: #3d4744;
+  --color-neutral-900: #1f2a28;
+  --color-neutral-1000: #0f1614;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-mute: var(--ink-mute);
+  --color-rule: var(--rule);
+
+  /* ── type ───────────────────────────────────────────────────────────
+     Font families declared ONCE in global.css @theme (Tailwind emits the
+     --font-* custom properties). Not duplicated here. */
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+
+  /* spacing — 8 steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* motion — 3 durations + 3 easings */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* breakpoints */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1440px;
+
+  /* radii + containers — collar-tag roundness (signature: 14px, NOT zero) */
+  --radius-card: 14px;
+  --radius-button: 999px;
+  --container-page: 1100px;
+}
+
+/* ── DARK — system preference, unless user forced light (night-clinic) ── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --brand: #4fc0a9;
+    --brand-soft: #17302b;
+    --paw: #f79a58;
+    --tag: #d8b566;
+    --paper: #131817;
+    --paper-2: #1b2321;
+    --ink: #eef2ef;
+    --ink-mute: #93a29c;
+    --rule: #2a3431;
+    --rule-strong: #3a4642;
+    --v-dev: #4fc0a9;
+    --v-finance: #f79a58;
+    --v-culture: #d8b566;
+    --v-health: #ec7c5a;
+    --v-personal: #9cae8e;
+    --color-accent-fg: #131817;
+    --color-neutral-0: #1b2321;
+    --color-neutral-50: #131817;
+    --color-neutral-100: #1b2321;
+    --color-neutral-200: #2a3431;
+    --color-neutral-300: #3a4642;
+    --color-neutral-500: #93a29c;
+    --color-neutral-700: #c2ccc7;
+    --color-neutral-900: #eef2ef;
+  }
+}
+
+/* ── DARK — explicit user override, wins over system ────────────────── */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --brand: #4fc0a9;
+  --brand-soft: #17302b;
+  --paw: #f79a58;
+  --tag: #d8b566;
+  --paper: #131817;
+  --paper-2: #1b2321;
+  --ink: #eef2ef;
+  --ink-mute: #93a29c;
+  --rule: #2a3431;
+  --rule-strong: #3a4642;
+  --v-dev: #4fc0a9;
+  --v-finance: #f79a58;
+  --v-culture: #d8b566;
+  --v-health: #ec7c5a;
+  --v-personal: #9cae8e;
+  --color-accent-fg: #131817;
+  --color-neutral-0: #1b2321;
+  --color-neutral-50: #131817;
+  --color-neutral-100: #1b2321;
+  --color-neutral-200: #2a3431;
+  --color-neutral-300: #3a4642;
+  --color-neutral-500: #93a29c;
+  --color-neutral-700: #c2ccc7;
+  --color-neutral-900: #eef2ef;
+}
+
+/* ── SEPIA — warm bedding, marmalade accent ─────────────────────────── */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --brand: #b06534;
+  --brand-soft: #f2e2cf;
+  --paw: #d8613f;
+  --paper: #f5ecdb;
+  --paper-2: #fbf4e6;
+  --ink: #33291d;
+  --ink-mute: #7c6a52;
+  --rule: #e2d3ba;
+  --color-accent-fg: #fbf4e6;
+  --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --color-neutral-50: #f5ecdb;
+  --color-neutral-100: #efe3cd;
+  --color-neutral-200: #e2d3ba;
+  --color-neutral-500: #7c6a52;
+  --color-neutral-700: #5a4c38;
+  --color-neutral-900: #33291d;
+}
+
+/* ── HIGH-CONTRAST — pure black/white, hard borders ─────────────────── */
+:root[data-theme='hc'] {
+  color-scheme: light;
+  --brand: #0a5f52;
+  --brand-soft: #d6f0ea;
+  --paw: #a8430f;
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --ink: #000000;
+  --ink-mute: #2a2a35;
+  --rule: #000000;
+  --color-accent-fg: #ffffff;
+  --color-fg-soft: #2a2a35;
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #000000;
+  --color-neutral-500: #2a2a35;
+  --color-neutral-700: #000000;
+  --color-neutral-900: #000000;
+}
