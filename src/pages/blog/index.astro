@@ -4,16 +4,16 @@ import PostCard from '~/components/blog/PostCard.astro'
  * /blog — page 1 of the paginated blog index.
  * Pages 2+ live at /blog/page/[page] (see ./page/[page].astro).
  *
- * Layout: filter strip of every category, then a ruled dispatch ledger.
+ * Layout: PawSpeciesRail (signature component) then a ruled dispatch ledger.
  */
 import BaseLayout from '~/layouts/BaseLayout.astro'
-import { getAllCategories, getPublishedPosts, slugifyTag } from '~/lib/blog'
+import PawSpeciesRail from '~/components/PawSpeciesRail.astro'
+import { getPublishedPosts } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
 const PAGE_SIZE = 12
 
 const allPosts = await getPublishedPosts()
-const categories = await getAllCategories()
 const totalPages = Math.max(1, Math.ceil(allPosts.length / PAGE_SIZE))
 const posts = allPosts.slice(0, PAGE_SIZE)
 
@@ -22,7 +22,7 @@ const jsonLd = {
   '@type': 'Blog',
   name: `Blog — ${SITE_CONFIG.title}`,
   url: new URL('/blog/', SITE_CONFIG.url).toString(),
-  description: 'Writing on software, AI agents, finance tooling, and the tools I build at oriz.in.',
+  description: 'Plain-language pet care guides for dogs, cats, and more at PawPost.',
   author: {
     '@type': 'Person',
     name: SITE_CONFIG.author.name,
@@ -32,27 +32,20 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title="Blog"
-  description="Writing on software, AI agents, finance tooling, and the tools I build."
+  title="All Guides — PawPost"
+  description="Plain-language pet care guides on dogs, cats, nutrition, behaviour, and health."
   jsonLd={jsonLd}
 >
   <div class="container-page section">
     <header class="blog-head">
-      <p class="blog-kicker mono">The desk</p>
-      <h1>Blog</h1>
+      <p class="blog-kicker mono">Field notes on pet care</p>
+      <h1>All Guides</h1>
       <p class="blog-lede">
-        Writing on software, AI agents, finance tooling, and the tools I build.
+        Plain-language guides on dogs, cats, nutrition, behaviour, and health — checked against veterinary sources.
       </p>
     </header>
 
-    {categories.length > 0 && (
-      <nav class="desk-strip mono" aria-label="Filter posts by category">
-        <a class="desk is-active" href="/blog/">All</a>
-        {categories.map((c) => (
-          <a class="desk" href={`/categories/${slugifyTag(c)}/`}>{c}</a>
-        ))}
-      </nav>
-    )}
+    <PawSpeciesRail />
 
     {posts.length === 0 ? (
       <p class="muted">No posts yet — the first one drops shortly.</p>
@@ -102,26 +95,8 @@ const jsonLd = {
     margin: 0.75rem 0 0;
     max-width: 60ch;
   }
-  .desk-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem 1rem;
-    margin-bottom: 0.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--ink);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .desk {
-    color: var(--ink-mute);
-    text-decoration: none;
-    padding-bottom: 2px;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1rem;
-  }
-  .desk:hover { color: var(--accent); }
-  .desk.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+  .desk-strip,
+  .desk { display: none; } /* replaced by PawSpeciesRail */
   .post-list {
     list-style: none;
     margin: 0;

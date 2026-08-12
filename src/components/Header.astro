@@ -15,8 +15,9 @@ import Wordmark from '~/components/Wordmark.astro'
 const path = Astro.url.pathname
 const isHome = path === '/'
 const nav = [
-  { href: '/', label: 'Board', on: isHome },
-  { href: '/series/', label: 'Series', on: path.startsWith('/series') },
+  { href: '/', label: 'Kennel', on: isHome },
+  { href: '/blog/', label: 'Guides', on: path.startsWith('/blog') && !path.startsWith('/blog/') || path === '/blog/' },
+  { href: '/categories/', label: 'Topics', on: path.startsWith('/categories') },
   { href: '/tags/', label: 'Tags', on: path.startsWith('/tags') },
   { href: '/about/', label: 'About', on: path.startsWith('/about') },
 ]

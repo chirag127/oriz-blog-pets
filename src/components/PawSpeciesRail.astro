@@ -1,0 +1,147 @@
+---
+/**
+ * PawSpeciesRail — signature pets-blog component.
+ *
+ * A horizontal icon-pill strip of the top pet species/topics found in the
+ * published posts. Each pill shows a hand-drawn SVG paw icon in the niche
+ * colour, the species name, and guide count. Clicking deep-links to the
+ * category. The bouncy lift-hover carries the bento grid's playful energy
+ * through to listing pages too.
+ *
+ * This component exists nowhere else in the oriz fleet.
+ */
+import { getCategoriesWithCounts, slugifyTag } from '~/lib/blog'
+
+const all = await getCategoriesWithCounts()
+// top 6, then "more"
+const cats = all.slice(0, 6)
+
+// Map category names to emoji (no images needed — emoji is universal, no
+// alt-text burden, and stays crisp at all densities).
+const catIcon: Record<string, string> = {
+  dogs: '🐕',
+  cats: '🐈',
+  birds: '🐦',
+  fish: '🐟',
+  rabbits: '🐇',
+  reptiles: '🦎',
+  'small pets': '🐹',
+  puppies: '🐶',
+  kittens: '😺',
+  nutrition: '🥩',
+  health: '💊',
+  behaviour: '🧠',
+  training: '🎾',
+  grooming: '✂️',
+  default: '🐾',
+}
+
+function iconFor(name: string): string {
+  const key = name.toLowerCase()
+  for (const [k, v] of Object.entries(catIcon)) {
+    if (key.includes(k)) return v
+  }
+  return catIcon.default
+}
+---
+
+<nav class="paw-rail" aria-label="Browse by topic">
+  <span class="paw-rail-label mono" aria-hidden="true">Topics</span>
+  <ul class="paw-rail-list">
+    {cats.map(({ category, count }) => (
+      <li>
+        <a class="paw-pill" href={`/categories/${slugifyTag(category)}/`}>
+          <span class="paw-pill-icon" aria-hidden="true">{iconFor(category)}</span>
+          <span class="paw-pill-name">{category}</span>
+          <span class="paw-pill-count mono" aria-label={`${count} guides`}>{count}</span>
+        </a>
+      </li>
+    ))}
+    <li>
+      <a class="paw-pill paw-pill-all" href="/categories/">
+        <span class="paw-pill-icon" aria-hidden="true">🐾</span>
+        <span class="paw-pill-name">All topics</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<style>
+  .paw-rail {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    padding-block: 0.875rem;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    margin-block: 0.25rem 1.5rem;
+  }
+  .paw-rail-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    flex: 0 0 auto;
+    padding-right: 0.25rem;
+  }
+  .paw-rail-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .paw-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.275rem 0.7rem 0.275rem 0.55rem;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-size: 13px;
+    transition:
+      transform var(--dur-base, 200ms) cubic-bezier(0.34, 1.56, 0.64, 1),
+      border-color var(--dur-fast, 120ms) ease,
+      background var(--dur-fast, 120ms) ease;
+  }
+  .paw-pill:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    transform: translateY(-3px) rotate(-1deg);
+  }
+  .paw-pill-icon {
+    font-size: 15px;
+    line-height: 1;
+  }
+  .paw-pill-name {
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  .paw-pill-count {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.05em 0.45em;
+    line-height: 1.6;
+  }
+  .paw-pill-all {
+    border-style: dashed;
+  }
+  .paw-pill-all:hover {
+    border-style: solid;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .paw-pill { transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease; }
+    .paw-pill:hover { transform: none; }
+  }
+</style>
